@@ -1,6 +1,7 @@
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
 import { buildSchema } from 'graphql';
+import cors from 'cors';
 
 import data from './cms.json';
 
@@ -20,6 +21,7 @@ var schema = buildSchema(`
   type Query {
     homePage: HomePage
     faqs: [Faq]
+    faq(id: Int!): Faq
   }
 `);
 
@@ -30,16 +32,20 @@ var root = {
   },
   faqs: () => {
     return data.faqs;
+  },
+  faq: ({ id }) => {
+    return data.faqs[id];
   }
 };
 
 var app = express();
-app.use('/graphql', graphqlHTTP({
-  schema: schema,
-  rootValue: root,
-  graphiql: true,
-}))
-.use('/content', express.static('./dist/public/'));
+app.use(cors())
+  .use('/graphql', graphqlHTTP({
+    schema: schema,
+    rootValue: root,
+    graphiql: true,
+  }))
+  .use('/content', express.static('./dist/public/'));
 
 app.listen(4000);
 console.log('Running a GraphQL API server at localhost:4000/graphql');
